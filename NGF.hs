@@ -1,42 +1,11 @@
-module NGF where
+module NGF (parseNGF) where
+
+import Game
 
 import Text.ParserCombinators.Parsec
 import Data.Time.Format
-import Data.Time.Clock
 import System.Locale
 import qualified Data.Map as M
-
-data RankType = Dan | Kyu | Pro 
-              deriving (Show)
-
-data Rank = Rank Int RankType deriving (Show)
-
-data Player = Player String Rank deriving (Show)
-
-data Color  = Black | White deriving (Show)
-data Margin = Time
-            | Resignation
-            | Points Double
-            deriving (Show)
-
-data Result = Unfinished
-            | Draw
-            | Win Color Margin
-            deriving (Show)
-
-data Move = Coord Int Int
-          | Pass
-          deriving (Show)
-
-data Game = Game { size        :: Int
-                 , black       :: Player
-                 , white       :: Player
-                 , handicap    :: Int
-                 , komi        :: Double
-                 , time        :: UTCTime
-                 , moves       :: [Move]
-                 , result      :: Result
-                 } deriving (Show)
 
 readRankType 'D' = Dan
 readRankType 'K' = Kyu
@@ -64,18 +33,20 @@ coords = "BCDEFGHIJKLMNOPQRST"
 cmap   = M.fromList $ zip coords [1..19]
 
 cnum :: CharParser st Int
-cnum   = do c <- oneOf coords
-            case M.lookup c cmap of
-                Just n  -> return n
-                Nothing -> fail "coordinate"
+cnum = do c <- oneOf coords
+          case M.lookup c cmap of
+              Just n  -> return n
+              Nothing -> fail "coordinate"
 
 moveLine = do string "PM"
               count 2 anyChar
-              oneOf "BW"
-              col <- cnum
-              row <- cnum
+              color <- oneOf "BW"
+              col   <- cnum
+              row   <- cnum
               chomp
-              return $ Coord row col
+              return $ Stone (ch color) col row
+    where ch 'B' = Black
+          ch 'W' = White
 
 resultLine = do color <- (string "White") <|> (string "Black")
                 space
@@ -120,6 +91,4 @@ ngf = do chomp
          moves  <- count nMoves moveLine
          return $ Game size black white handi komi time moves result
 
---ngfFile :: String -> IO (Either ParseError Game)
-ngfFile p = do text <- readFile p
-               return $ parse ngf "parse error" text
+parseNGF = parse ngf "NGF error" 
