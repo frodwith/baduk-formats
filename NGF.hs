@@ -1,8 +1,10 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
 module NGF (parseNGF) where
 
 import Game
-
-import Text.ParserCombinators.Parsec
+import Text.Parsec
+import Control.Applicative hiding (optional, (<|>))
 import Data.Time.Format
 import System.Locale
 import qualified Data.Map as M
@@ -11,72 +13,62 @@ readRankType 'D' = Dan
 readRankType 'K' = Kyu
 readRankType 'P' = Pro
 
-eol :: CharParser st String
 eol = string "\r\n"
 
 chomp = do skipMany $ noneOf "\r\n"
            eol
 
-numberLine = do n <- many1 digit
-                chomp
-                return (read n :: Int)
+numberLine = read <$> many1 digit <* eol
 
-playerLine = do name <- many1 alphaNum
-                spaces
-                q <- many1 digit
-                t <- oneOf "DKP"
-                chomp
-                return $ Player name (Rank (read q) (readRankType t))
+playerLine = Player <$> many1 alphaNum <*> rank
+    where rank = make <$> (spaces *> many1 digit)
+                      <*> oneOf "DKP" <* optional (char '*') <* eol
+          make r t = Rank (read r) (readRankType t)
 
+coords = "ABCDEFGHIJKLMNOPQRST"
+cmap   = M.fromList $ zip coords [0..19]
+pCoord = (cmap M.!) <$> oneOf coords
 
-coords = "BCDEFGHIJKLMNOPQRST"
-cmap   = M.fromList $ zip coords [1..19]
+moveLine = (mv . ch2c) <$> (string "PM" *> count 2 anyChar *> oneOf "BW")
+                       <*> pCoord <*> pCoord <* count 2 anyChar <* eol
+    where mv c 0 0 = Pass c
+          mv c x y = Stone c x y
+          ch2c 'B' = Black
+          ch2c 'W' = White
 
-cnum :: CharParser st Int
-cnum = do c <- oneOf coords
-          case M.lookup c cmap of
-              Just n  -> return n
-              Nothing -> fail "coordinate"
+resultLine = Win <$> pWinner <*> pMargin
+    where pWinner = (flip winner) <$> (((string "White") <|> (string "Black"))                                         <* space)
+                                  <*> ((string "wins")  <|> (string "loses"))
 
-moveLine = do string "PM"
-              count 2 anyChar
-              color <- oneOf "BW"
-              col   <- cnum
-              row   <- cnum
-              chomp
-              return $ Stone (ch color) col row
-    where ch 'B' = Black
-          ch 'W' = White
+          pMargin = margin <$> (spaces *> ((string "on") <|> (string "by")))
+                           <*> (spaces *> ((string "time")
+                                           <|> (string "resign")
+                                           <|> pPoints))
+                           <* chomp
 
-resultLine = do color <- (string "White") <|> (string "Black")
-                space
-                wins  <- (string "wins") <|> (string "loses")
-                let tloss  = wins == "loses"
-                let winner = if tloss
-                             then if color == "White" then Black else White
-                             else if color == "White" then White else Black
-                margin <- do if tloss
-                             then return Time
-                             else do spaces
-                                     string "by"
-                                     spaces
-                                     m <- (string "resign")
-                                          <|> do whole <- many1 digit
-                                                 half  <- option ' ' (char '.')
-                                                 return $ if half == '.'
-                                                          then whole ++ ".5"
-                                                          else whole
-                                          <?> "game result"
-                                     return $ if m == "resign" 
-                                              then Resignation 
-                                              else Points (read m)
-                chomp
-                return $ Win winner margin                                      
+          pPoints = do whole <- many1 digit
+                       half  <- optionMaybe (char '.')
+                       return $ case half of
+                                    Nothing  -> whole
+                                    Just '.' -> whole ++ ".5"
+
+          winner "wins"  = s2c
+          winner "loses" = other . s2c
+
+          s2c "White" = White
+          s2c "Black" = Black
+
+          other Black = White
+          other White = Black
+
+          margin "on" "time"   = Time
+          margin "by" "resign" = Resignation
+          margin "by" p        = Points (read p)
 
 ngf = do chomp
          size  <- numberLine
-         black <- playerLine
          white <- playerLine
+         black <- playerLine
          chomp
          handi <- numberLine
          chomp
@@ -91,4 +83,4 @@ ngf = do chomp
          moves  <- count nMoves moveLine
          return $ Game size black white handi komi time moves result
 
-parseNGF = parse ngf "NGF error" 
+parseNGF = parse ngf "parseNGF"

@@ -37,6 +37,7 @@ game2sgf g = let (Player bn br) = (black g)
                     pmar Resignation = "Resign"
                     pmar (Points n)  = show n
 
+          pm (Pass  bw)     = ";" ++ (pcol bw) ++ "[]"
           pm (Stone bw c r) = ";" ++ (p (pcol bw) ((co c):(co r):[]))
              where co n    = letters !! (n-1)
                    letters = ['a'..'z']
