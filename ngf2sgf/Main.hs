@@ -1,5 +1,7 @@
-import SGF
-import NGF
+module Main where
+
+import Codec.Baduk.Emitter.SGF
+import Codec.Baduk.Parser.WBaduk
 
 ngf2sgf text = case (parseNGF text) of
                    Left  e -> error (show e)

@@ -1,9 +1,9 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module Gibo (parseGibo) where
+module Codec.Baduk.Parser.Tygem (parseGibo) where
 
 import Text.Read
-import Game hiding (moves, result, handicap)
+import Codec.Baduk.Game hiding (moves, result, handicap)
 import Text.Parsec
 import Text.Parsec.Error
 import Data.Maybe

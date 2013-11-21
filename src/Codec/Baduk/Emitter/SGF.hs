@@ -1,6 +1,6 @@
-module SGF where
+module Codec.Baduk.Emitter.SGF (game2sgf) where
 
-import Game
+import Codec.Baduk.Game
 import Data.Time.Format
 import Data.Time.Clock
 import System.Locale

@@ -1,8 +1,8 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module NGF (parseNGF) where
+module Codec.Baduk.Parser.WBaduk (parseNGF) where
 
-import Game
+import Codec.Baduk.Game
 import Text.Parsec
 import Control.Applicative hiding (optional, (<|>))
 import Data.Time.Format

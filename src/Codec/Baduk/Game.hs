@@ -1,4 +1,4 @@
-module Game where
+module Codec.Baduk.Game where
 
 import Data.Time.Clock
 import Data.Time.Format

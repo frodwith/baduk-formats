@@ -1,5 +1,7 @@
-import SGF
-import Gibo
+module Main where
+
+import Codec.Baduk.Emitter.SGF
+import Codec.Baduk.Parser.Tygem
 
 gibo2sgf text = case (parseGibo text) of
                    Left  e -> error (show e)
