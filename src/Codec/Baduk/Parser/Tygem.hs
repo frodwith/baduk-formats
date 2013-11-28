@@ -94,7 +94,7 @@ gibo2game (Gibo tags moves) =
                         Nothing -> Left $ GiboParseError
                                         $ "Could not read \"" ++ s ++ "\""
 
-          pTime s = case parseTime defaultTimeLocale "%0Y-%m-%d-%H-%M-%S" s of
+          pTime s = case parseTime defaultTimeLocale "%0Y-%m-%d-%_H-%M-%S" s of
                         Just t  -> Right t
                         Nothing -> Left $ DateFormatError s
 
