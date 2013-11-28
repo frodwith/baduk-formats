@@ -5,15 +5,20 @@ module Codec.Baduk.Parser.Tygem (parseGibo) where
 import Text.Read
 import Codec.Baduk.Game hiding (moves, result, handicap)
 import Text.Parsec
+import Text.Parsec.Text
 import Text.Parsec.Error
 import Data.Maybe
 import Data.Time.Format
 import System.Locale
 import Control.Applicative hiding (many, (<|>))
+import qualified Data.Text as T
 
 int1 = (read :: String -> Int) <$> many1 digit
 
 eol = string "\n"
+      <|> try (string "\r\n")
+      <|> string "\r"
+      <?> "end of line"
 
 header = start *> eol *> (endBy (try tag) eol) <* end
     where start = string "\\HS"
@@ -93,8 +98,9 @@ gibo2game (Gibo tags moves) =
                         Just t  -> Right t
                         Nothing -> Left $ DateFormatError s
 
-player = Player <$> many1 (noneOf " ") <*> ((many space) *> rank)
-    where rank    = Rank <$> (char '(' *> int1)
+player = Player <$> name <*> ((many space) *> rank)
+    where name    = T.pack <$> many1 (noneOf " ")
+          rank    = Rank <$> (char '(' *> int1)
                          <*> (letter <* char ')')
           letter  = dkp <$> oneOf "DKP"
           dkp 'D' = Dan

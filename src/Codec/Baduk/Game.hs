@@ -2,13 +2,14 @@ module Codec.Baduk.Game where
 
 import Data.Time.Clock
 import Data.Time.Format
+import Data.Text as T
 
 data RankType = Dan | Kyu | Pro 
               deriving (Show)
 
 data Rank = Rank Int RankType deriving (Show)
 
-data Player = Player String Rank deriving (Show)
+data Player = Player T.Text Rank deriving (Show)
 
 data Color  = Black | White deriving (Show)
 data Margin = Time

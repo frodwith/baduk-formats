@@ -4,9 +4,11 @@ module Codec.Baduk.Parser.WBaduk (parseNGF) where
 
 import Codec.Baduk.Game
 import Text.Parsec
+import Text.Parsec.Text
 import Control.Applicative hiding (optional, (<|>))
 import Data.Time.Format
 import System.Locale
+import qualified Data.Text as T
 import qualified Data.Map as M
 
 readRankType 'D' = Dan
@@ -20,8 +22,9 @@ chomp = do skipMany $ noneOf "\r\n"
 
 numberLine = read <$> many1 digit <* eol
 
-playerLine = Player <$> many1 alphaNum <*> rank
-    where rank = make <$> (spaces *> many1 digit)
+playerLine = Player <$> name <*> rank
+    where name = T.pack <$> many1 (noneOf " ")
+          rank = make <$> (spaces *> many1 digit)
                       <*> oneOf "DKP" <* optional (char '*') <* eol
           make r t = Rank (read r) (readRankType t)
 
