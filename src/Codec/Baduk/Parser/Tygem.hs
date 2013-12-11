@@ -116,7 +116,9 @@ result = Win <$> winner <*> (space *> margin)
     where winner = s2c <$> ((string "black") <|> string ("white"))
           margin = r2m <$> (try (string "wins by time")
                             <|> (string "wins by resignation")
-                            <|> (points <* (string " win")))
+                            <|> (points <* char ' '
+                                        <* (optional (string "points "))
+                                        <* (string "win")))
 
           r2m "wins by time"        = Time
           r2m "wins by resignation" = Resignation
