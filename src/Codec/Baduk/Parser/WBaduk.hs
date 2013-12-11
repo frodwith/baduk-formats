@@ -2,7 +2,7 @@
 
 module Codec.Baduk.Parser.WBaduk (parseNGF) where
 
-import Codec.Baduk.Game
+import Data.Baduk.Game
 import Text.Parsec
 import Text.Parsec.Text
 import Control.Applicative hiding (optional, (<|>))

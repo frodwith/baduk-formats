@@ -3,14 +3,14 @@
 module Codec.Baduk.Parser.Tygem (parseGibo) where
 
 import Text.Read
-import Codec.Baduk.Game hiding (moves, result, handicap)
+import Data.Baduk.Game hiding (moves, result, handicap)
 import Text.Parsec
 import Text.Parsec.Text
 import Text.Parsec.Error
 import Data.Maybe
 import Data.Time.Format
 import System.Locale
-import Control.Applicative hiding (many, (<|>))
+import Control.Applicative hiding (many, optional, (<|>))
 import qualified Data.Text as T
 
 int1 = (read :: String -> Int) <$> many1 digit

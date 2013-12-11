@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Codec.Baduk.Emitter.SGF (game2sgf) where
 
-import Codec.Baduk.Game
+import Data.Baduk.Game
 import Data.Time.Format
 import Data.Time.Clock
 import System.Locale
